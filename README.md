@@ -65,7 +65,8 @@ definition（record 的 canonical 构造器是 public），于是它只执行 `s
 5. **基线永远调一次**（哪怕 `properties()` 为空）：上游靠这次调用惰性分配 `Object[]`；少调一次会让
    "该状态从未被命中"与"被命中但写进去的全是默认值"在数组层面出现 `null` vs 全 `null` 的差异。
 
-`tools/equiv_model.py` 用真实数据跑了两条路径并逐状态逐槽位比对（`python tools/equiv_model.py`）：
+`tools/equiv_model.py` 用真实数据跑了两条路径并逐状态逐槽位比对
+（`python tools/equiv_model.py <copyfoxies-2.2.0.jar>`，或设 `COPYFOXIES_JAR`；不给 jar 时只跑 fuzz）：
 
 ```
 [real] 11 definition(s), 11 block(s), 15,325 override entr(y/ies), 15,325 state(s)
@@ -196,9 +197,9 @@ sable-costfix: verify PASS — 11544 state(s) compared; original 0.10 s vs apply
 | `src/main/java/dev/shiratori/sablecostfix/SableCostFix.java` | `@Mod` 入口，只注册命令 |
 | `src/main/resources/sablecostfix.mixins.json` | `defaultRequire: 1`，required |
 | `src/main/resources/META-INF/neoforge.mods.toml` | 依赖 sable `[2.0.6,2.1)`、`[[mixins]]` |
-| `tools/equiv_model.py` | naive vs indexed 等价性模型 + 真实数据复算 + 模糊测试 |
+| `tools/equiv_model.py` | naive vs indexed 等价性模型 + 真实数据复算 + 模糊测试；jar 走位置参数或 `COPYFOXIES_JAR`，都不给就只跑 fuzz |
 | `tools/make_smoke_datapack.py` | 生成 dev 冒烟数据包（redstone_wire 全枚举 1,296 条；混形状样例在 `tools/fixtures/oak_stairs_mixed.json`） |
-| `tools/rcon.py` | 最小 RCON 客户端，dev 冒烟测试里发 `/sablecostfix verify` |
-| `tools/check_jar.py` | 产物自检：jar 内容 / mods.toml / mixins.json / 不得含上游 class |
-| `tools/find_callers.py` | 在 Sable jar 里找 `applyToBlocks` / `applyAll` 的引用方（就是靠它定位客户端 packet 路径） |
-| `run/smoke/datapacks/smoke-physics` | 冒烟数据包（redstone_wire 全枚举 + oak_stairs 混形状） |
+| `tools/rcon.py` | 最小 RCON 客户端，dev 冒烟测试里发 `/sablecostfix verify`（`--host/--port/--password`，默认 25575/`smoketest`） |
+| `tools/check_jar.py` | 产物自检：jar 内容 / mods.toml / mixins.json / 不得含上游 class（可选位置参数指定 jar，缺省取 `build/libs` 最新） |
+| `tools/find_callers.py` | 在 jar 常量池里找引用方：`[jar]` + `--needle`，jar 默认 `$SABLE_JAR` → `libs/sable.jar`（靠它定位了客户端 packet 路径） |
+| `tools/fixtures/oak_stairs_mixed.json` | 混形状 definition 的冒烟样例（一个 definition 里混用 1/2/3 个条件键，专门喂 fallback 分支） |

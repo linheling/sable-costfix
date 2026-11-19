@@ -11,18 +11,26 @@ BlockState.sable$properties 抽象成 {属性键: 值} 的 dict。
   2. fuzz：随机生成 definition（含部分键、空键、非法值、属性缺失、多种键形状、
      多方块 tag 选择子、优先级冲突），断言两条路径逐状态逐槽位相同。
 
-用法：python tools/equiv_model.py
+用法：
+    python tools/equiv_model.py [copyfoxies.jar] [--fuzz 3000]
+
+copyfoxies.jar 的解析顺序：位置参数 → 环境变量 `COPYFOXIES_JAR`。都找不到就**只跑 fuzz**
+（等价性模糊测试不依赖任何真实数据），并打一行提示说明 real 部分被跳过。
 """
 
 from __future__ import annotations
 
+import argparse
 import itertools
 import json
+import os
 import random
+import sys
 import zipfile
 from dataclasses import dataclass, field
+from pathlib import Path
 
-JAR = r"D:\mc\PCL2\.minecraft\versions\1.21.1-NeoForge_21.1.265\mods\copyfoxies-2.2.0.jar"
+ENV_VAR = "COPYFOXIES_JAR"
 PREFIX = "data/copyfoxies/physics_block_properties/"
 
 
@@ -60,9 +68,9 @@ def parse_key(key: str) -> list[tuple[str, str]]:
     return conditions
 
 
-def load_real_definitions() -> list[Definition]:
+def load_real_definitions(jar: Path) -> list[Definition]:
     definitions: list[Definition] = []
-    with zipfile.ZipFile(JAR) as archive:
+    with zipfile.ZipFile(jar) as archive:
         names = sorted(n for n in archive.namelist() if n.startswith(PREFIX) and n.endswith(".json"))
         for name in names:
             raw = json.loads(archive.read(name))
@@ -207,8 +215,8 @@ def indexed(definitions: list[Definition], blocks: dict[str, Block]) -> tuple[di
 # --------------------------------------------------------------------------- 真实数据
 
 
-def check_real() -> None:
-    definitions = load_real_definitions()
+def check_real(jar: Path) -> None:
+    definitions = load_real_definitions(jar)
     blocks = blocks_from_real(definitions)
     total_entries = sum(len(d.overrides) for d in definitions)
     total_states = sum(len(b.states()) for b in blocks.values())
@@ -345,6 +353,33 @@ def fuzz(trials: int = 3000, seed: int = 20261119) -> None:
           f"(in {trials_with_fallback} trials), states compared={total_states:,}")
 
 
+def resolve_jar(value: str | None) -> Path | None:
+    """位置参数 → $COPYFOXIES_JAR；都没有就返回 None（只跑 fuzz）。"""
+    for candidate in (value, os.environ.get(ENV_VAR)):
+        if candidate and Path(candidate).is_file():
+            return Path(candidate)
+    return None
+
+
 if __name__ == "__main__":
-    check_real()
-    fuzz()
+    parser = argparse.ArgumentParser(description="naive vs indexed 等价性模型")
+    parser.add_argument(
+        "jar",
+        nargs="?",
+        help=f"copyfoxies jar 路径（默认 ${ENV_VAR}；省略且没有环境变量时只跑 fuzz）",
+    )
+    parser.add_argument("--fuzz", type=int, default=3000, metavar="N", help="模糊测试轮数，0 表示跳过（默认 3000）")
+    cli = parser.parse_args()
+
+    jar = resolve_jar(cli.jar)
+    if jar is None:
+        print(f"[real] skipped: 没给 copyfoxies jar（位置参数或 ${ENV_VAR}），只跑 fuzz。")
+        print(f"       例：python tools/equiv_model.py <copyfoxies-2.2.0.jar>")
+    else:
+        print(f"[real] jar: {jar}")
+        check_real(jar)
+
+    if cli.fuzz > 0:
+        fuzz(trials=cli.fuzz)
+    else:
+        print("[fuzz] skipped (--fuzz 0)")
