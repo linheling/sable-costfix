@@ -517,6 +517,11 @@ $z.Dispose()
 
 ## 11. 反编译证据（可直接核对）
 
+> **2026-11-19 22:45 注**：`D:\C\MC\mods\tmp\*` 下的反编译树已随工作区清理删除（`reports/` 目录同样
+> 已删，**本仓库的 `docs/` 是这份报告与英文 issue 的唯一副本**）。下表保留类名与行号作为引用锚点，
+> 重出方法见 §9：输入 jar 在实例 `mods/sable-neoforge-1.21.1-2.0.6.jar`，反编译器在工作区
+> `tools/cfr.jar`（或 `vf.jar`）。文件名里的 `tmp\sable_*_src` 是当时的输出目录，按同样的目录名重出即可对上。
+
 | 文件 | 位置 | 内容 |
 |---|---|---|
 | `D:\C\MC\mods\tmp\sable_bp_src\dev\ryanhcode\sable\physics\config\block_properties\PhysicsBlockPropertiesDefinitionLoader.java` | L96–123 | `applyToBlocks`：状态 × 条目双重循环 |
