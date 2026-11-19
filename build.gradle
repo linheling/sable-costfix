@@ -1,0 +1,59 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.144'
+    id 'idea'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+    runs {
+        client {
+            client()
+            gameDirectory = file('run')
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            gameDirectory = file('run')
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+// 上游全部 compileOnly：jar 内绝不含任何 Sable class（Sable 为 PolyForm Shield，不随包分发）。
+// 运行期由游戏实例里的 sable-neoforge-1.21.1-2.0.6.jar 提供；两侧必须字节一致。
+dependencies {
+    compileOnly files('libs/sable.jar')
+
+    // 仅用于本地 dev 冒烟测试：把上游 jar 当 mod 加载，跑一次 runServer 就能看到 mixin 是否真的
+    // 注入成功（日志里那条 "sable-costfix: N definition(s) ..."）。runtimeOnly 不会进产物 jar。
+    runtimeOnly files('libs/sable.jar')
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes([
+                "Specification-Title"     : mod_id,
+                "Specification-Vendor"    : mod_authors,
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Vendor"   : mod_authors,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}

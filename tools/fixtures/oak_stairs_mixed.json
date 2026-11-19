@@ -1,0 +1,18 @@
+{
+  "priority": 900,
+  "selector": "minecraft:oak_stairs",
+  "properties": {
+    "sable:mass": 1.0
+  },
+  "overrides": {
+    "facing=east": {
+      "sable:mass": 0.5
+    },
+    "facing=west,half=top": {
+      "sable:mass": 0.25
+    },
+    "facing=north,half=bottom,waterlogged=true": {
+      "sable:mass": 0.125
+    }
+  }
+}

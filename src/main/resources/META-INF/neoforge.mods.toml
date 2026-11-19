@@ -1,0 +1,43 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mods]]
+modId = "sablecostfix"
+version = "1.0.1"
+displayName = "Sable Cost Fix"
+authors = "shiratori"
+description = '''
+Replaces both of Sable's physics_block_properties apply entry points (the per-dimension
+applyAll() and the per-definition applyToBlocks() used by the client sync packet) with a
+hash-indexed pass, and skips re-application when the data set has not changed. World load
+with copyfoxies 2.2.0 drops from ~18.8 s per dimension on the server plus ~12.9 s on the
+client to tens of milliseconds on each side. BOTH sides required, sable 2.0.x only.
+'''
+
+[[mixins]]
+config = "sablecostfix.mixins.json"
+
+[[dependencies.sablecostfix]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.sablecostfix]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"
+
+# 补丁直接 @Inject 进 Sable 的 PhysicsBlockPropertiesDefinitionLoader（applyAll 与 applyToBlocks 两个
+# 入口），2.0.6 之后只要这两个方法的名字/描述符变化就可能注入失败（我们选择失败即崩，见 README §5）。
+# 因此上限锁到 2.1。
+[[dependencies.sablecostfix]]
+modId = "sable"
+type = "required"
+versionRange = "[2.0.6,2.1)"
+ordering = "AFTER"
+side = "BOTH"

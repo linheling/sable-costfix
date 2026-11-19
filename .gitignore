@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# dev run dir (eula, world, extracted Rapier natives, generated smoke datapack)
+run/
+
+# upstream jars are NOT redistributable here:
+# Sable is PolyForm Shield licensed, so libs/*.jar must be supplied locally (see libs/README.md)
+libs/*.jar
+libs/_jarjar/
+
+# python
+__pycache__/
+*.pyc
+
+# editors / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

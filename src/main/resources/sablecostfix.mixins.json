@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.shiratori.sablecostfix.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PhysicsLoaderMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
